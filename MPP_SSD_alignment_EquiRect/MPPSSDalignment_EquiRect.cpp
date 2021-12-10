@@ -29,7 +29,8 @@
 #include <per/prStereoModel.h>
 
 #include <per/prStereoModelXML.h>
-#include <per/prRegularlySampledCSImage.h>
+//#include <per/prRegularlySampledCSImage.h>
+#include <per/prRegularlySampledCSImageDepth.h>
 
 #include <per/prPhotometricGMS.h>
 #include <per/prFeaturesSet.h>
@@ -329,25 +330,30 @@ std::cout << iter->path().string() << std::endl;
     
     //En image spherique
     //initialisation de l'estimation d'orientation
-    prPoseSphericalEstim<prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>, prRegularlySampledCSImage >, prSSDCmp<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec> > > gyro(1e-6);
+    prPoseSphericalEstim<prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>, prRegularlySampledCSImageDepth >, prSSDCmp<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec> > > gyro(1e-6);
 //    bool dofs[6] = {false, false, false, true, false, false}; //"compas"
     bool dofs[6] = {true, true, true, false, false, false}; //"gyro"
 
     gyro.setdof(dofs[0], dofs[1], dofs[2], dofs[3], dofs[4], dofs[5]);
 
     //prepare the request spherical image (here, the reference image is always considered as the request in order to compute the rotations that allow to rotate it to the current image)
-    prRegularlySampledCSImage<unsigned char> IS_req(subdivLevel); //the regularly sample spherical image to be set from the acquired/loaded dual fisheye image
+    //prRegularlySampledCSImageDepth<unsigned char, float> IS_req(subdivLevel); //the regularly sample spherical image-depth to be set from the acquired/loaded dual fisheye image
+		prRegularlySampledCSImageDepth<unsigned char> IS_req(subdivLevel); //the regularly sample spherical image-depth to be set from the acquired/loaded dual fisheye image
     IS_req.setInterpType(prInterpType::IMAGEPLANE_BILINEAR);
     
     //IS_req.buildFromTwinOmni(I_req, stereoCam, &Mask); // Goulot !
-    IS_req.buildFromEquiRect(I_req, ecam, &Mask); 
+    IS_req.buildFromEquiRect(I_req, depthmap_req, ecam, &Mask); 
     IS_req.toAbsZN(); //prepare spherical pixels intensities for the MPP cost function expression constraints
-    prRegularlySampledCSImage<float> GS(subdivLevel); //contient tous les pr3DCartesianPointVec XS_g et fera GS_sample.buildFrom(IS_req, XS_g);
+		//below: prRegularlySampledCSImage or prRegularlySampledCSImageDepth?
+    //prRegularlySampledCSImageDepth<float, float> GS(subdivLevel); //contient tous les pr3DCartesianPointVec XS_g et fera GS_sample.buildFrom(IS_req, XS_g);
+		prRegularlySampledCSImageDepth<float> GS(subdivLevel); //contient tous les pr3DCartesianPointVec XS_g et fera GS_sample.buildFrom(IS_req, XS_g);
     
-    prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>,prRegularlySampledCSImage > fSet_req;
+    prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>,prRegularlySampledCSImageDepth > fSet_req;
     prPhotometricGMS<prCartesian3DPointVec> GS_sample_req(lambda_g, truncGauss==1);
+
+    bool poseJacobianCompute = true;
     // TODO : calculer en parallele un fSet_req avec lambda_g /= 10 pour les dernières itérations --> précision accrue, sans perdre de temps
-    fSet_req.buildFrom(IS_req, GS, GS_sample_req);
+    fSet_req.buildFrom(IS_req, GS, GS_sample_req, poseJacobianCompute);
 
     gyro.buildFrom(fSet_req);
     
@@ -379,14 +385,13 @@ std::cout << iter->path().string() << std::endl;
     vpPoseVector r, r_to_save;
     vpHomogeneousMatrix key_dMc, dMd_prec;
     
-    bool poseJacobianCompute = true;
     //activate the M-Estimator
     bool robust = false;//true;//
     vpImage<unsigned char> I_des;
     
     //3. Successive computation of the "desired" festures set for every image of the sequence that are used to register the request spherical image considering zero values angles initialization, the optimal angles of the previous image (the request image changes at every iteration), the optimal angles of the previous image (the resquest image changes only if the MPP-SSD error is greater than a threshold)
     //double angle = -177.5*M_PI/180.;
-    prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>, prRegularlySampledCSImage > fSet_des;
+    prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>, prRegularlySampledCSImageDepth > fSet_des; //prRegularlySampledCSImageDepth though this depth is not used nor existing
     double seuilErr = 0.0325; //0.015; //0.0077;// // OK pour 0,325 seul et subdiv3
     while(!clickOut && (imNum <= i360))
     {
@@ -451,14 +456,15 @@ std::cout << iter->path().string() << std::endl;
         vpDisplay::flush(I_des);
         
         // Desired feature set setting from the current image
-        prRegularlySampledCSImage<unsigned char> IS_des(subdivLevel);
+        //prRegularlySampledCSImageDepth<unsigned char, float> IS_des(subdivLevel);
+				prRegularlySampledCSImageDepth<unsigned char> IS_des(subdivLevel);
         IS_des.setInterpType(prInterpType::IMAGEPLANE_BILINEAR);
         //IS_des.buildFromTwinOmni(I_des, stereoCam, &Mask);
-        IS_des.buildFromEquiRect(I_des, ecam, &Mask);
+        IS_des.buildFromEquiRect(I_des, ecam, &Mask); //no depth
         IS_des.toAbsZN();
         
         //calculer en parallele un fSet_des avec lambda_g /= 10 pour les dernières itérations --> précision accrue, sans perdre de temps
-        fSet_des.buildFrom(IS_des, GS, GS_sample, poseJacobianCompute); // Goulot !
+        fSet_des.buildFrom(IS_des, GS, GS_sample, false); // Goulot !
         std::cout << "nb features : " << fSet_des.set.size() << std::endl;
         
         // if there is a file provided as initial poses, they are used instead of other strategies
