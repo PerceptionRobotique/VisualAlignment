@@ -42,6 +42,7 @@
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
 
+#include <visp/vpImageTools.h>
 #include <visp/vpImage.h>
 #include <visp/vpImageIo.h>
 
@@ -206,7 +207,16 @@ std::cout << iter->path().string() << std::endl;
     }
 
 		std::cout << depthmap_req.getWidth() << " " << depthmap_req.getHeight() << std::endl;
-
+		
+		if( (depthmap_req.getWidth() != I_req.getWidth()) || (depthmap_req.getHeight() != I_req.getHeight()) )
+		{
+			vpImage<float> depthmap_req_resize;
+			vpImageTools::resize(depthmap_req, depthmap_req_resize, I_req.getWidth(), I_req.getHeight(), vpImageTools::INTERPOLATION_LINEAR);//vpImageTools::INTERPOLATION_AREA);
+			depthmap_req = depthmap_req_resize;
+		}
+		
+		std::cout << depthmap_req.getWidth() << " " << depthmap_req.getHeight() << std::endl;
+		
 		vpImage<unsigned char> depthmap_req_disp;
 		vpImageConvert::convert(depthmap_req, depthmap_req_disp); 	
     vpDisplayX disp_depthmap;
@@ -331,8 +341,9 @@ std::cout << iter->path().string() << std::endl;
     //En image spherique
     //initialisation de l'estimation d'orientation
     prPoseSphericalEstim<prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>, prRegularlySampledCSImageDepth >, prSSDCmp<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec> > > gyro(1e-6);
-//    bool dofs[6] = {false, false, false, true, false, false}; //"compas"
-    bool dofs[6] = {true, true, true, false, false, false}; //"gyro"
+//    bool dofs[6] = {false, false, false, true, true, true}; //"gyro"
+//    bool dofs[6] = {true, true, true, true, true, true}; //"6DoF"
+    bool dofs[6] = {false, false, true, false, false, false}; //"6DoF"
 
     gyro.setdof(dofs[0], dofs[1], dofs[2], dofs[3], dofs[4], dofs[5]);
 
@@ -558,12 +569,14 @@ std::cout << iter->path().string() << std::endl;
         if(stabilisation)
         {
             vpPoseVector ir;
+            //r_to_save.set(0,0,0,0,0,0);
             ir.buildFrom(vpHomogeneousMatrix(r_to_save).inverse());
             //IS_des.toTwinOmni(I_r, ir, stereoCam, &Mask);
             IS_des.toEquiRect(I_r, ir, ecam, &Mask);
         }
         else
         {
+        		//r.set(0,0,-1,0,0,0);
             //IS_req.toTwinOmni(I_r, r, stereoCam, &Mask);
             IS_req.toEquiRect(I_r, r, ecam, &Mask);
         }
