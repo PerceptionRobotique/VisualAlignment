@@ -23,7 +23,7 @@
 3. open the project in build or use make in the latter directory to build the exe file
 4. run the program from the command line at the project top directory, considering it includes the 2021_MPP_SSD_alignment_EquiRect_media directory, with arguments as:
 
-./build/Release/MPPSSDalignment_VVSlike_EquiRect 3 0.325 ./2021_MPP_SSD_alignment_EquiRect_media/images_subdiv3/ ./2021_MPP_SSD_alignment_EquiRect_media/depthmaps_subdiv3/ 0 0 1 1 ./2021_MPP_SSD_alignment_EquiRect_media/images_subdiv3/maskFull.png 1 1 1 0
+./build/MPPSSDalignment_VVSlike_EquiRect 5 0.1 ./2021_MPP_SSD_alignment_EquiRect_media/images_subdiv5/ ./2021_MPP_SSD_alignment_EquiRect_media/depthmaps_full/ 0 67 67 1 ./2021_MPP_SSD_alignment_EquiRect_media/images_subdiv5/maskFull_subdiv5.png 1 0 0 1
 
 that are, in the reading order:
 - the number of subdivision levels for the spherical image sampling
