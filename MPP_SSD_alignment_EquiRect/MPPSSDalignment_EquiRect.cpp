@@ -3,6 +3,9 @@
  \brief Mixture of Photometric Potentials (MPP) SSD for spherical camera orientation estimation (3 DOFs), exploiting PeR core, core_extended, io, features, estimation and sensor_pose_estimation modules
  * example command line :
  *  ./MPPSSDalignment_EquiRect 3 0.325 ./2021_MPP_SSD_alignment_EquiRect_media/images_subdiv3/ ./2021_MPP_SSD_alignment_EquiRect_media/depthmaps_subdiv3/ 0 0 1 1 ./2021_MPP_SSD_alignment_EquiRect_media/images_subdiv3/maskFull.png 1 1 1 0
+ 
+ ./MPPSSDalignment_EquiRect 5 0.025 /home/guillaume/Data/FullScan/pcrgbalign/images_subdiv5/ /home/guillaume/Data/FullScan/pcrgbalign/depthmaps_full/ 0 603 603 1 /home/guillaume/Data/FullScan/pcrgbalign/images_subdiv5/mask.png 1 0 0 1
+ 
  \param subDiv the number of subdivision levels for the spherical image sampling
  \param lambda_g the Gaussian expansion parameter
  \param imDir the directory containing the Equirectangular images to process
@@ -342,8 +345,9 @@ std::cout << iter->path().string() << std::endl;
     //initialisation de l'estimation d'orientation
     prPoseSphericalEstim<prFeaturesSet<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec>, prRegularlySampledCSImageDepth >, prSSDCmp<prCartesian3DPointVec, prPhotometricGMS<prCartesian3DPointVec> > > gyro(1e-6);
 //    bool dofs[6] = {false, false, false, true, true, true}; //"gyro"
-//    bool dofs[6] = {true, true, true, true, true, true}; //"6DoF"
-    bool dofs[6] = {false, false, true, false, false, false}; //"6DoF"
+    bool dofs[6] = {true, true, true, true, true, true}; //"6DoF"
+//    bool dofs[6] = {true, true, true, false, false, false}; //"3DoF"
+//    bool dofs[6] = {false, false, true, false, false, false}; //"1DoF"
 
     gyro.setdof(dofs[0], dofs[1], dofs[2], dofs[3], dofs[4], dofs[5]);
 
@@ -399,6 +403,7 @@ std::cout << iter->path().string() << std::endl;
     //activate the M-Estimator
     bool robust = false;//true;//
     vpImage<unsigned char> I_des;
+    vpImage<unsigned char> I_diff;
     
     //3. Successive computation of the "desired" festures set for every image of the sequence that are used to register the request spherical image considering zero values angles initialization, the optimal angles of the previous image (the request image changes at every iteration), the optimal angles of the previous image (the resquest image changes only if the MPP-SSD error is greater than a threshold)
     //double angle = -177.5*M_PI/180.;
@@ -457,6 +462,14 @@ std::cout << iter->path().string() << std::endl;
             {
                 std::cout << iter->path().string() << " loaded" << std::endl;
                 vpImageIo::read(I_des, iter->path().string());
+                
+								vpImageTools::imageDifference(I_req, I_des, I_diff);
+								s.str("");
+								s.setf(std::ios::right, std::ios::adjustfield);
+								s << imPath << "/aligned/" << std::setfill('0') << std::setw(6) << imNum << "I_diff_init.png";
+								filename = s.str();
+								vpImageIo::write(I_diff, filename);
+								
                 break;
             }
         }
@@ -585,6 +598,13 @@ std::cout << iter->path().string() << std::endl;
         s << imPath << "/aligned/" << std::setfill('0') << std::setw(6) << imNum << ".png";
         filename = s.str();
         vpImageIo::write(I_r, filename);
+        
+        vpImageTools::imageDifference(I_r, I_des, I_diff);
+        s.str("");
+        s.setf(std::ios::right, std::ios::adjustfield);
+        s << imPath << "/aligned/" << std::setfill('0') << std::setw(6) << imNum << "I_diff_final.png";
+        filename = s.str();
+        vpImageIo::write(I_diff, filename);
         
         imNum+=iStep;
         nbPass++;
