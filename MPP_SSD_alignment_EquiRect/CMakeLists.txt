@@ -18,9 +18,9 @@
 #
 #############################################################################
 
-project(MPP_SSD_alignment_EquiRect)
+cmake_minimum_required(VERSION 4.0)
 
-cmake_minimum_required(VERSION 2.6)
+project(MPP_SSD_alignment_EquiRect)
 
 find_package(PER REQUIRED per_core per_core_extended per_io per_features per_sensor_pose_estimation per_estimation)
 if(PER_FOUND)

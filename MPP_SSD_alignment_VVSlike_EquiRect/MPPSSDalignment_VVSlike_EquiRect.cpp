@@ -431,6 +431,15 @@ int main(int argc, char **argv)
 
         vpDisplay::display(I_des);
         vpDisplay::flush(I_des);
+
+        //I_r - I_des
+        s.str("");
+        s.setf(std::ios::right, std::ios::adjustfield);
+        s << imPath << "/aligned/" << std::setfill('0') << std::setw(6) << imNum << "_diff_0.png";
+        filename = s.str();
+        vpImage<unsigned char> I_diff;
+        vpImageTools::imageDifference(I_req, I_des, I_diff);
+        vpImageIo::write(I_diff, filename);
         
         // Desired features set setting from the current image
 				prRegularlySampledCSImageDepth<unsigned char> IS_des(subdivLevel);
@@ -646,6 +655,17 @@ int main(int argc, char **argv)
         s << imPath << "/aligned/" << std::setfill('0') << std::setw(6) << imNum << ".png";
         filename = s.str();
         vpImageIo::write(I_r, filename);
+
+        //I_r - I_des
+        s.str("");
+        s.setf(std::ios::right, std::ios::adjustfield);
+        s << imPath << "/aligned/" << std::setfill('0') << std::setw(6) << imNum << "_diff_1.png";
+        filename = s.str();
+        //vpImage<unsigned char> I_diff;
+        vpImageTools::imageDifference(I_r, I_des, I_diff);
+        vpImageIo::write(I_diff, filename);
+
+        
         
         imNum+=iStep;
         nbPass++;

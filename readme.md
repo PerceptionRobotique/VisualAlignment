@@ -1,21 +1,12 @@
-#############################################################################
-#
-# This file is part of the libPR software.
-# Copyright (C) 2021 by MIS lab (UPJV) & JRL (CNRS-AIST). All rights reserved.
-#
-# See http://mis.u-picardie.fr/~g-caron/fr/index.php?page=7 for more information.
-#
-#
-# This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-# WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-#
-# Description:
-# Insight about how to set the project and build the program
-#
-# Authors:
-# Guillaume Caron
-#
-#############################################################################
+# Visual Alignment
+
+**Direct visual pose estimation of omnidirectional images**
+
+Based on [**[LibPeR]**](https://github.com/PerceptionRobotique/libPeR_base) `C++` library, this repository contains code to demonstrate use cases of direct visual orientation estimation. Use MPP_SSD_alignment_VVSlike_EquiRect. MPP_SSD_alignment_EquiRect is let as legacy for the moment. 
+
+## How to use
+
+### Build
 
 0. install libPeR, libboost-filesystem-dev, libboost-system-dev, libboost-regex-dev
 1. create a new directory named build in MPP_SSD_alignment_VVSlike_EquiRect
@@ -43,4 +34,23 @@ that are, in the reading order:
 
 Sample images, depthmaps and mask files are provided in the "MPP_SSD_alignment_EquiRect_media" archive to be downloaded from here: http://mis.u-picardie.fr/~g-caron/data/PeR/2021_MPP_SSD_alignment_EquiRect_media.zip 
 
-Note: validated with libPeR_base/v0.7.0
+
+```
+Copyright (C) 2021-2025 by MIS lab (UPJV). All rights reserved.
+
+See http://mis.u-picardie.fr/~g-caron/fr/index.php?page=7 for more information.
+
+This software was developed at:
+CNRS - AIST JRL (Joint Robotics Laboratory)
+1-1-1 Umezono, Tsukuba, Ibaraki
+Japan
+
+This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+Description:
+Insight about how to set the project and build the program
+Author:
+Guillaume CARON
+
+```
